@@ -6,9 +6,9 @@
 
 ## Current Status
 
-**Stage 2 completed** — Design System and Application Shell.
+**Stage 3 completed** — Landing Page.
 
-Current working branch: `stage/02-design-system`
+Current working branch: `stage/03-landing-page`
 
 This repository is the beginning of a production-oriented SaaS application that helps website owners import, store, visualize, and export historical analytics data (CSV, JSON, and later integrations).
 
@@ -30,8 +30,8 @@ The project follows a strict stage-by-stage development process. Each stage is d
 ## Development Stages Overview
 
 1. Repository Foundation & Project Audit
-2. **Design System & Application Shell** ← *current*
-3. Landing Page
+2. Design System & Application Shell
+3. **Landing Page** ← *current*
 4. Authentication
 5. Website Project Management
 6. Database & Analytics Data Model
@@ -59,7 +59,7 @@ npm run dev
 ```
 
 Then open:
-- http://localhost:3000 — temporary home page
+- http://localhost:3000 — public landing page
 - http://localhost:3000/dashboard — design system & app shell preview
 
 ## Important Rules for Contributors / AI Assistants
