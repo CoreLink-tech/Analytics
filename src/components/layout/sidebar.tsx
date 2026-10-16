@@ -114,7 +114,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
 
       <div className="border-t border-border p-3">
         <p className="px-3 text-xs text-foreground-subtle">
-          Stage 2 — Design System
+          Stage 5 — Projects
         </p>
       </div>
     </aside>

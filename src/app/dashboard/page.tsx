@@ -15,6 +15,7 @@ import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -36,9 +37,14 @@ export default async function DashboardPage() {
             Welcome{session.user.name ? `, ${session.user.name}` : ""}
           </h2>
           <p className="mt-1 text-foreground-muted">
-            You are signed in. Project management and data import arrive in
-            later stages. Below is the design-system reference used across the app.
+            You are signed in. Manage website projects under My Websites.
+            Data import arrives in a later stage. Below is the design-system reference.
           </p>
+          <div className="mt-4">
+            <Link href="/dashboard/websites">
+              <Button>My Websites</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Buttons */}

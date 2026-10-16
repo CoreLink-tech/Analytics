@@ -1,0 +1,109 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { getProjectForUser } from "@/lib/projects/store";
+import { AppShell } from "@/components/layout/app-shell";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { DeleteProjectButton } from "@/components/projects/delete-project-button";
+import { EmptyState } from "@/components/ui/empty-state";
+
+type PageProps = { params: Promise<{ id: string }> };
+
+export default async function WebsiteDetailPage({ params }: PageProps) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/login?callbackUrl=/dashboard/websites");
+  }
+
+  const { id } = await params;
+  const project = await getProjectForUser(id, session.user.id);
+  if (!project) {
+    notFound();
+  }
+
+  return (
+    <AppShell
+      title={project.name}
+      userName={session.user.name}
+      userEmail={session.user.email}
+    >
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Link
+              href="/dashboard/websites"
+              className="text-sm text-foreground-muted hover:text-foreground"
+            >
+              ← Back to websites
+            </Link>
+            <h2 className="mt-2 text-2xl font-semibold text-foreground">
+              {project.name}
+            </h2>
+            {project.domain && (
+              <p className="mt-1 text-sm text-foreground-muted">
+                {project.domain}
+              </p>
+            )}
+          </div>
+          <Link href={`/dashboard/websites/${project.id}/edit`}>
+            <Button variant="outline" size="sm">
+              Edit
+            </Button>
+          </Link>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Details</CardTitle>
+            <CardDescription>Project metadata</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div>
+              <p className="text-foreground-subtle">Description</p>
+              <p className="text-foreground">
+                {project.description || "No description"}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="text-foreground-subtle">Created</p>
+                <p className="text-foreground">
+                  {new Date(project.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <p className="text-foreground-subtle">Updated</p>
+                <p className="text-foreground">
+                  {new Date(project.updatedAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <EmptyState
+          title="No analytics imported yet"
+          description="CSV and JSON import arrives in a later stage. This project is ready to receive data."
+        />
+
+        <div className="border-t border-border pt-6">
+          <h3 className="text-sm font-semibold text-foreground">Danger zone</h3>
+          <p className="mt-1 mb-3 text-sm text-foreground-muted">
+            Deleting a project removes it from your account permanently.
+          </p>
+          <DeleteProjectButton
+            projectId={project.id}
+            projectName={project.name}
+          />
+        </div>
+      </div>
+    </AppShell>
+  );
+}
