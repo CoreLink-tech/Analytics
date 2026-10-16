@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-16  
 **Branch:** `stage/03-landing-page`  
-**Status:** Completed — awaiting approval
+**Status:** Completed (with post-review corrections) — approved
 
 ## A. Stage Overview
 
@@ -13,8 +13,8 @@
 
 ## B. Features Implemented
 
-- Sticky responsive navigation (desktop links + mobile menu)
-- Hero with primary tagline and dual CTAs
+- Sticky responsive navigation (desktop links + mobile menu with Escape, backdrop close, body scroll lock)
+- Hero with primary tagline, dual CTAs, and clear interim-destination note
 - Labeled illustrative product preview (explicitly not live data)
 - Problem / solution section
 - How it works (3 steps)
@@ -23,6 +23,7 @@
 - Final CTA with honest note that auth arrives in Stage 4
 - Footer with product, account, and legal placeholders
 - Improved page metadata (title template, description, Open Graph, robots)
+- Section anchor targets use `scroll-mt-20` so sticky header does not hide headings
 
 ## C. Files Changed
 
@@ -38,14 +39,12 @@
 ## D. Technical Decisions
 
 - Landing page reuses existing design tokens and utility classes; no new UI library.
-- CTAs currently link to `/dashboard` (design-system preview) because authentication does not exist yet. The page states this clearly near the final CTA.
-- Product preview uses neutral placeholders (“Your imports”, “Your history”) and an “Illustrative preview — not live data” label to avoid implying fabricated metrics.
+- CTAs currently link to `/dashboard` (design-system preview) because authentication does not exist yet. Hero, nav, and final CTA all disclose this interim behavior.
+- Product preview uses neutral placeholders and an “Illustrative preview — not live data” label.
 - Future integrations are described as planned, not available.
 - No company address, invented legal entity, or fake social proof was added.
 
 ## E. Testing and Verification
-
-Commands executed and actual results:
 
 ```text
 npx tsc --noEmit
@@ -59,9 +58,9 @@ npm run build
 ```
 
 Manual checks:
-- All sections render and anchor links (#features, #how-it-works, #privacy) work.
-- Mobile navigation opens and closes.
-- Layout is responsive.
+- Anchor links clear the sticky header (`scroll-mt-20`).
+- Mobile nav closes on Escape, backdrop click, and body scroll is locked while open.
+- CTA microcopy states that destinations are the app preview until auth ships.
 - No fake customer logos, testimonials, or usage statistics.
 
 ## F. Security Considerations
@@ -72,10 +71,10 @@ Manual checks:
 
 ## G. Known Limitations
 
-- “Sign in” / “Get started” routes to the design-system preview until Stage 4.
+- “Get started” / “Start your archive” still open the design-system preview until Stage 4 (now clearly labeled).
 - Terms of service page is listed as “coming soon”.
-- Pricing is omitted (not defined yet), consistent with the product specification.
-- Design-system dashboard remains available at `/dashboard` for component review.
+- Pricing is omitted (not defined yet).
+- Design-system dashboard remains available at `/dashboard`.
 
 ## H. Next Stage
 
@@ -93,3 +92,9 @@ Frontend-only changes. Safe to revert:
 ```bash
 git checkout stage/02-design-system
 ```
+
+## J. Post-Review Corrections
+
+1. **Sticky header covering anchors** — Added `scroll-mt-20` to `#features`, `#how-it-works`, and `#privacy`.
+2. **Mobile nav UX** — Escape closes menu, body scroll locked while open, backdrop click-outside closes menu, `role="dialog"` / `aria-modal`.
+3. **Misleading CTA destinations** — Nav uses “App preview” instead of “Sign in”; hero and mobile menu include explicit notes that links open the design-system preview until authentication ships.

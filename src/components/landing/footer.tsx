@@ -46,7 +46,7 @@ export function LandingFooter() {
             <ul className="mt-3 space-y-2 text-sm text-foreground-muted">
               <li>
                 <Link href="/dashboard" className="hover:text-foreground">
-                  Sign in
+                  App preview
                 </Link>
               </li>
               <li>

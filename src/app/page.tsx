@@ -33,6 +33,7 @@ export default function LandingPage() {
                     "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   )}
+                  title="Opens the design-system preview until authentication ships"
                 >
                   Start your archive
                 </Link>
@@ -47,6 +48,10 @@ export default function LandingPage() {
                   See how it works
                 </a>
               </div>
+              <p className="mt-4 text-xs text-foreground-subtle">
+                &quot;Start your archive&quot; opens the app preview for now. Account
+                sign-up arrives in the next development stage.
+              </p>
             </div>
 
             {/* Honest product preview (illustrative, not a live dashboard) */}
@@ -164,7 +169,7 @@ export default function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section id="how-it-works" className="border-b border-border">
+        <section id="how-it-works" className="scroll-mt-20 border-b border-border">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -207,7 +212,7 @@ export default function LandingPage() {
         </section>
 
         {/* Features */}
-        <section id="features" className="border-b border-border bg-background-subtle">
+        <section id="features" className="scroll-mt-20 border-b border-border bg-background-subtle">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -260,7 +265,7 @@ export default function LandingPage() {
         </section>
 
         {/* Privacy & control */}
-        <section id="privacy" className="border-b border-border">
+        <section id="privacy" className="scroll-mt-20 border-b border-border">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
