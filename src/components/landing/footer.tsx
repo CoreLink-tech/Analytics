@@ -35,7 +35,7 @@ export function LandingFooter() {
               </li>
               <li>
                 <Link href="/dashboard" className="hover:text-foreground">
-                  Design system preview
+                  App (signed in)
                 </Link>
               </li>
             </ul>
@@ -45,12 +45,12 @@ export function LandingFooter() {
             <h3 className="text-sm font-semibold text-foreground">Account</h3>
             <ul className="mt-3 space-y-2 text-sm text-foreground-muted">
               <li>
-                <Link href="/dashboard" className="hover:text-foreground">
-                  App preview
+                <Link href="/login" className="hover:text-foreground">
+                  Sign in
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-foreground">
+                <Link href="/register" className="hover:text-foreground">
                   Get started
                 </Link>
               </li>

@@ -14,19 +14,30 @@ import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login?callbackUrl=/dashboard");
+  }
+
   return (
-    <AppShell title="Design System Preview">
+    <AppShell
+      title="Overview"
+      userName={session.user.name}
+      userEmail={session.user.email}
+    >
       <div className="mx-auto max-w-5xl space-y-10">
         {/* Intro */}
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
-            Design System
+            Welcome{session.user.name ? `, ${session.user.name}` : ""}
           </h2>
           <p className="mt-1 text-foreground-muted">
-            Reusable components, tokens, and the application shell for Analytics
-            History Archive. This page demonstrates Stage 2 deliverables.
+            You are signed in. Project management and data import arrive in
+            later stages. Below is the design-system reference used across the app.
           </p>
         </div>
 

@@ -27,7 +27,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link
-                  href="/dashboard"
+                  href="/register"
                   className={cn(
                     "inline-flex h-11 w-full items-center justify-center rounded-lg px-6 text-base font-medium sm:w-auto",
                     "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover",
@@ -49,8 +49,7 @@ export default function LandingPage() {
                 </a>
               </div>
               <p className="mt-4 text-xs text-foreground-subtle">
-                &quot;Start your archive&quot; opens the app preview for now. Account
-                sign-up arrives in the next development stage.
+                Create a free account to open your archive dashboard.
               </p>
             </div>
 
@@ -309,7 +308,7 @@ export default function LandingPage() {
             </p>
             <div className="mt-8">
               <Link
-                href="/dashboard"
+                href="/register"
                 className={cn(
                   "inline-flex h-11 items-center justify-center rounded-lg px-8 text-base font-medium",
                   "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover",
@@ -320,8 +319,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <p className="mt-4 text-xs text-foreground-subtle">
-              Authentication arrives in Stage 4. The current “Get started” link
-              opens the design-system preview.
+              Registration creates your account. You can sign in anytime after.
             </p>
           </div>
         </section>

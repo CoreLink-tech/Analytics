@@ -7,12 +7,18 @@ import { Header } from "./header";
 interface AppShellProps {
   children: React.ReactNode;
   title?: string;
+  userName?: string | null;
+  userEmail?: string | null;
 }
 
-export function AppShell({ children, title }: AppShellProps) {
+export function AppShell({
+  children,
+  title,
+  userName,
+  userEmail,
+}: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close mobile nav on Escape and lock body scroll while open
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -32,14 +38,17 @@ export function AppShell({ children, title }: AppShellProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background-subtle">
-      {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:shrink-0">
         <Sidebar />
       </div>
 
-      {/* Mobile sidebar overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation menu">
+        <div
+          className="fixed inset-0 z-40 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+        >
           <div
             className="fixed inset-0 bg-black/40"
             onClick={() => setMobileOpen(false)}
@@ -51,9 +60,13 @@ export function AppShell({ children, title }: AppShellProps) {
         </div>
       )}
 
-      {/* Main content area */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Header title={title} onMenuClick={() => setMobileOpen(true)} />
+        <Header
+          title={title}
+          onMenuClick={() => setMobileOpen(true)}
+          userName={userName}
+          userEmail={userEmail}
+        />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>

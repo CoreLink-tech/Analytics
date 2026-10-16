@@ -57,20 +57,18 @@ export function LandingNav() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            href="/dashboard"
+            href="/login"
             className="text-sm font-medium text-foreground-muted hover:text-foreground"
-            title="Opens the design-system preview until authentication ships"
           >
-            App preview
+            Sign in
           </Link>
           <Link
-            href="/dashboard"
+            href="/register"
             className={cn(
               "inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium",
               "bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             )}
-            title="Opens the design-system preview until authentication ships"
           >
             Get started
           </Link>
@@ -125,14 +123,14 @@ export function LandingNav() {
               ))}
               <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   onClick={() => setOpen(false)}
                   className="rounded-md px-3 py-2 text-sm font-medium text-foreground-muted hover:bg-background-muted"
                 >
-                  App preview
+                  Sign in
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/register"
                   onClick={() => setOpen(false)}
                   className={cn(
                     "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium",
@@ -141,9 +139,6 @@ export function LandingNav() {
                 >
                   Get started
                 </Link>
-                <p className="px-3 text-xs text-foreground-subtle">
-                  Opens the design-system preview. Sign-in arrives in a later stage.
-                </p>
               </div>
             </nav>
           </div>

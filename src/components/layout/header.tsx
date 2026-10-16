@@ -1,14 +1,23 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 interface HeaderProps {
   title?: string;
   onMenuClick?: () => void;
   className?: string;
+  userName?: string | null;
+  userEmail?: string | null;
 }
 
-export function Header({ title, onMenuClick, className }: HeaderProps) {
+export function Header({
+  title,
+  onMenuClick,
+  className,
+  userName,
+  userEmail,
+}: HeaderProps) {
   return (
     <header
       className={cn(
@@ -16,7 +25,6 @@ export function Header({ title, onMenuClick, className }: HeaderProps) {
         className
       )}
     >
-      {/* Mobile menu button */}
       <button
         type="button"
         className="inline-flex items-center justify-center rounded-md p-2 text-foreground-muted hover:bg-background-muted hover:text-foreground lg:hidden"
@@ -40,16 +48,23 @@ export function Header({ title, onMenuClick, className }: HeaderProps) {
       </button>
 
       {title && (
-        <h1 className="text-lg font-semibold text-foreground truncate">
+        <h1 className="truncate text-lg font-semibold text-foreground">
           {title}
         </h1>
       )}
 
       <div className="ml-auto flex items-center gap-3">
-        {/* Placeholder for future user menu / project selector */}
-        <div className="hidden sm:block text-sm text-foreground-muted">
-          Design System Preview
-        </div>
+        {(userName || userEmail) && (
+          <div className="hidden text-right sm:block">
+            {userName && (
+              <p className="text-sm font-medium text-foreground">{userName}</p>
+            )}
+            {userEmail && (
+              <p className="text-xs text-foreground-muted">{userEmail}</p>
+            )}
+          </div>
+        )}
+        <SignOutButton />
       </div>
     </header>
   );
