@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getProjectForUser } from "@/lib/projects/store";
 import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -52,10 +51,11 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
               </p>
             )}
           </div>
-          <Link href={`/dashboard/websites/${project.id}/edit`}>
-            <Button variant="outline" size="sm">
-              Edit
-            </Button>
+          <Link
+            href={`/dashboard/websites/${project.id}/edit`}
+            className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            Edit
           </Link>
         </div>
 

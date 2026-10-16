@@ -41,8 +41,11 @@ export default async function DashboardPage() {
             Data import arrives in a later stage. Below is the design-system reference.
           </p>
           <div className="mt-4">
-            <Link href="/dashboard/websites">
-              <Button>My Websites</Button>
+            <Link
+              href="/dashboard/websites"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              My Websites
             </Link>
           </div>
         </div>

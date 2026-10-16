@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { listProjectsForUser } from "@/lib/projects/store";
 import { AppShell } from "@/components/layout/app-shell";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -37,8 +36,11 @@ export default async function WebsitesPage() {
               Projects hold the analytics history you import for each site.
             </p>
           </div>
-          <Link href="/dashboard/websites/new">
-            <Button>New project</Button>
+          <Link
+            href="/dashboard/websites/new"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            New project
           </Link>
         </div>
 
@@ -47,8 +49,11 @@ export default async function WebsitesPage() {
             title="No websites yet"
             description="Create your first website project to start preserving analytics history."
             action={
-              <Link href="/dashboard/websites/new">
-                <Button size="sm">Create project</Button>
+              <Link
+                href="/dashboard/websites/new"
+                className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                Create project
               </Link>
             }
           />
