@@ -9,10 +9,10 @@ export const authConfig = {
     signIn: "/login",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
     maxAge: 60 * 60 * 24 * 7,
   },
-  providers: [], // populated in index.ts for Node runtime
+  providers: [],
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
@@ -22,8 +22,14 @@ export const authConfig = {
       const isProtected =
         pathname.startsWith("/dashboard") || pathname.startsWith("/app");
 
-      if (isProtected) return isLoggedIn;
-      if (isAuthPage && isLoggedIn) return Response.redirect(new URL("/dashboard", request.nextUrl));
+      if (isProtected) {
+        return isLoggedIn;
+      }
+
+      if (isAuthPage && isLoggedIn) {
+        return Response.redirect(new URL("/dashboard", request.nextUrl.origin));
+      }
+
       return true;
     },
     async jwt({ token, user }) {

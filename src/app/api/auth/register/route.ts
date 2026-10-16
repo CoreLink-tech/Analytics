@@ -3,12 +3,12 @@ import { z } from "zod";
 import { createUser, toPublicUser } from "@/lib/auth/users";
 
 const registerSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Enter a valid email address"),
+  name: z.string().trim().min(1, "Name is required").max(100),
+  email: z.string().trim().email("Enter a valid email address").max(255),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(128),
+    .max(128, "Password is too long"),
 });
 
 export async function POST(request: Request) {
@@ -31,7 +31,9 @@ export async function POST(request: Request) {
 
   const result = await createUser(parsed.data);
   if ("error" in result) {
-    return NextResponse.json({ error: result.error }, { status: 409 });
+    // 409 for duplicate email; avoid revealing extra account details
+    const status = result.error.includes("already exists") ? 409 : 400;
+    return NextResponse.json({ error: result.error }, { status });
   }
 
   return NextResponse.json(

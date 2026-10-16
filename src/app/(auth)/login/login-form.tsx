@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert } from "@/components/ui/alert";
+import { safeCallbackUrl } from "@/lib/auth/callbacks";
 
 export function LoginForm({
   callbackUrl,
@@ -16,6 +17,7 @@ export function LoginForm({
   initialError?: string;
 }) {
   const router = useRouter();
+  const safeUrl = safeCallbackUrl(callbackUrl);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(
@@ -34,10 +36,10 @@ export function LoginForm({
 
     try {
       const result = await signIn("credentials", {
-        email,
+        email: email.trim(),
         password,
         redirect: false,
-        callbackUrl,
+        callbackUrl: safeUrl,
       });
 
       if (!result) {
@@ -50,7 +52,7 @@ export function LoginForm({
         return;
       }
 
-      router.push(result.url ?? callbackUrl);
+      router.push(safeUrl);
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -60,7 +62,7 @@ export function LoginForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
       {error && <Alert variant="error">{error}</Alert>}
 
       <div className="space-y-2">

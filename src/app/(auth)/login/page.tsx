@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "./login-form";
+import { safeCallbackUrl } from "@/lib/auth/callbacks";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -13,6 +14,7 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }) {
   const params = await searchParams;
+  const callbackUrl = safeCallbackUrl(params.callbackUrl);
 
   return (
     <div className="flex min-h-screen flex-col bg-background-subtle">
@@ -36,10 +38,7 @@ export default async function LoginPage({
           </div>
 
           <div className="rounded-lg border border-border bg-background p-6 shadow-sm">
-            <LoginForm
-              callbackUrl={params.callbackUrl ?? "/dashboard"}
-              initialError={params.error}
-            />
+            <LoginForm callbackUrl={callbackUrl} initialError={params.error} />
           </div>
 
           <p className="mt-6 text-center text-sm text-foreground-muted">

@@ -56,14 +56,17 @@ export async function createUser(input: {
   const email = normalizeEmail(input.email);
   const name = input.name.trim();
 
-  if (!email || !email.includes("@")) {
+  if (!email || !email.includes("@") || email.length > 255) {
     return { error: "Enter a valid email address." };
   }
-  if (name.length < 1) {
+  if (name.length < 1 || name.length > 100) {
     return { error: "Name is required." };
   }
   if (input.password.length < 8) {
     return { error: "Password must be at least 8 characters." };
+  }
+  if (input.password.length > 128) {
+    return { error: "Password is too long." };
   }
 
   const store = getStore();
