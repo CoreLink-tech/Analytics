@@ -1,6 +1,6 @@
 # Architecture Overview — Analytics History Archive
 
-*Last updated: Stage 1 (Repository Foundation)*
+*Last updated: Stage 2 (Design System & Application Shell)*
 
 ## Product Summary
 
@@ -32,40 +32,46 @@ It is **not** a live analytics tracker. It is a long-term archive and analysis t
                                                  └─────────────────┘
 ```
 
-## Key Design Decisions (Stage 1)
+## Current Implementation (Stage 2)
 
-1. **Empty starting point** — The repository previously contained only a one-line README. No existing application code, components, or configuration existed. We therefore establish the foundation cleanly.
+- Next.js 15 App Router + TypeScript
+- Tailwind CSS v4 with CSS custom-property design tokens
+- Reusable UI primitives under `src/components/ui/`
+- Application shell (`AppShell` + `Sidebar` + `Header`) under `src/components/layout/`
+- Design-system preview at `/dashboard`
+- No authentication, database, or import logic yet
 
-2. **Next.js + TypeScript + App Router** — Chosen for modern React development, server components, and good Vercel compatibility. Exact minor versions will be locked when `npm install` is successfully run in a stable network environment.
+## Key Design Decisions
 
-3. **Cloudflare D1 + R2** — Preferred for cost-effective structured storage (D1) and object storage (R2). Compatibility between Vercel runtime and Cloudflare bindings must be verified in Stage 6 before implementation. Alternative connection methods (e.g. REST API, or co-locating on Cloudflare Workers) will be evaluated then.
-
-4. **No secrets in repo** — All credentials via environment variables. `.env.example` contains only placeholder names.
-
-5. **Stage-gated development** — Strict one-stage-at-a-time workflow with documentation, testing, and explicit human approval required between stages.
+1. **Empty starting point** — Repository began with only a one-line README.
+2. **Next.js + TypeScript + App Router** — Modern React development and Vercel compatibility.
+3. **Tailwind v4 + CSS tokens** — Semantic colors and easy theming without a large component library.
+4. **Cloudflare D1 + R2** — Target data layer; connection method verified in Stage 6.
+5. **No secrets in repo** — All credentials via environment variables.
+6. **Stage-gated development** — One stage at a time with documentation and explicit approval.
 
 ## Data Model (Conceptual — implemented in Stage 6)
 
-- **Users** (managed by auth provider)
-- **Projects** (website archives owned by a user)
-- **Import Batches** (metadata about each upload)
-- **Analytics Records** (normalized metric observations)
-- **Integration Connections** (later stages)
+- Users (managed by auth provider)
+- Projects (website archives owned by a user)
+- Import Batches
+- Analytics Records
+- Integration Connections (later stages)
 
 ## Security Principles
 
 - Server-side authorization on every private resource
 - Project ownership checks on every query
-- File upload validation (type, size, structure)
+- File upload validation
 - No secrets in client bundles or logs
 - CSV formula injection protection on export
 
-## Known Constraints (as of Stage 1)
+## Known Constraints
 
-- This development environment has intermittent network connectivity to npm and occasionally GitHub, which prevented a full `create-next-app` + `npm install` cycle during Stage 1. The source structure and configuration files are prepared so that a subsequent `npm install` can complete the setup.
-- No production deployment, database, or auth provider has been provisioned yet.
-- Mobile-first responsive design and accessibility are required from Stage 2 onward.
+- No production deployment, database, or auth provider provisioned yet.
+- Mobile-first responsive design and accessibility are required from Stage 2 onward (shell is responsive).
+- Real feature routes will replace the current design-system preview links in later stages.
 
 ## Next Stage
 
-Stage 2 will establish the design system (colors, typography, spacing, reusable components) and the basic application shell (layout, navigation placeholders).
+Stage 3 will build the public landing page with accurate product messaging, hero, how-it-works, features, and CTAs.

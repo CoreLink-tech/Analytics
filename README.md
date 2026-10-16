@@ -6,9 +6,9 @@
 
 ## Current Status
 
-**Stage 1 completed** (with post-review corrections) — Repository foundation and project audit.
+**Stage 2 completed** — Design System and Application Shell.
 
-Current working branch: `stage/01-repository-foundation`
+Current working branch: `stage/02-design-system`
 
 This repository is the beginning of a production-oriented SaaS application that helps website owners import, store, visualize, and export historical analytics data (CSV, JSON, and later integrations).
 
@@ -19,7 +19,7 @@ The project follows a strict stage-by-stage development process. Each stage is d
 | Layer              | Technology                          |
 |--------------------|-------------------------------------|
 | Framework          | Next.js (App Router) + TypeScript   |
-| Styling            | Tailwind CSS                        |
+| Styling            | Tailwind CSS v4                     |
 | Database           | Cloudflare D1                       |
 | File storage       | Cloudflare R2                       |
 | Hosting            | Vercel (application)                |
@@ -29,8 +29,8 @@ The project follows a strict stage-by-stage development process. Each stage is d
 
 ## Development Stages Overview
 
-1. **Repository Foundation & Project Audit** ← *current*
-2. Design System & Application Shell
+1. Repository Foundation & Project Audit
+2. **Design System & Application Shell** ← *current*
 3. Landing Page
 4. Authentication
 5. Website Project Management
@@ -44,10 +44,10 @@ The project follows a strict stage-by-stage development process. Each stage is d
 
 See `docs/stages/` for detailed stage reports.
 
-## Getting Started (after Stage 2+)
+## Getting Started
 
 ```bash
-# Install dependencies (once package.json is fully populated and source scaffolding exists)
+# Install dependencies
 npm install
 
 # Copy environment template
@@ -57,6 +57,10 @@ cp .env.example .env.local
 # Run development server
 npm run dev
 ```
+
+Then open:
+- http://localhost:3000 — temporary home page
+- http://localhost:3000/dashboard — design system & app shell preview
 
 ## Important Rules for Contributors / AI Assistants
 
