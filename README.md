@@ -6,7 +6,9 @@
 
 ## Current Status
 
-**Stage 1 completed** — Repository foundation and project audit.
+**Stage 1 completed** (with post-review corrections) — Repository foundation and project audit.
+
+Current working branch: `stage/01-repository-foundation`
 
 This repository is the beginning of a production-oriented SaaS application that helps website owners import, store, visualize, and export historical analytics data (CSV, JSON, and later integrations).
 
@@ -45,7 +47,7 @@ See `docs/stages/` for detailed stage reports.
 ## Getting Started (after Stage 2+)
 
 ```bash
-# Install dependencies (once package.json is fully populated)
+# Install dependencies (once package.json is fully populated and source scaffolding exists)
 npm install
 
 # Copy environment template

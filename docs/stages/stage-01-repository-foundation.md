@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-16  
 **Branch:** `stage/01-repository-foundation`  
-**Status:** Completed — awaiting approval
+**Status:** Completed (with post-review corrections) — awaiting approval
 
 ## A. Stage Overview
 
@@ -31,7 +31,7 @@ No application UI, authentication, database, or import logic was implemented (co
 | `package.json` | Created | Declare intended dependencies and npm scripts |
 | `.env.example` | Created | Document required environment variables safely |
 | `docs/architecture.md` | Created | Capture architectural decisions and constraints |
-| `docs/stages/stage-01-repository-foundation.md` | Created | Mandatory stage documentation |
+| `docs/stages/stage-01-repository-foundation.md` | Created / Updated | Mandatory stage documentation |
 
 Original one-line README content is fully superseded by the new README (no valuable prior application code existed).
 
@@ -42,6 +42,7 @@ Original one-line README content is fully superseded by the new README (no valua
 - **Cloudflare D1 / R2:** Documented as the target data layer; actual connection method and compatibility verification deferred to Stage 6.
 - **Secrets policy:** Explicitly enforced via `.gitignore` and `.env.example`. The previously shared GitHub token should be revoked by the repository owner.
 - **Branching:** Using the recommended `stage/01-repository-foundation` branch.
+- **Remote URL hygiene:** The local Git remote was cleaned so that the personal access token is no longer stored in plain text in `.git/config`.
 
 ## E. Testing and Verification
 
@@ -49,23 +50,28 @@ Commands executed and results:
 
 ```text
 # Repository inspection
-git log --oneline          → 5cfd7b3 Initial commit
+git log --oneline          → 5cfd7b3 Initial commit (then later c009ba0)
 git status                 → clean on main before branch creation
-ls / find                  → only README.md present
+ls / find                  → only README.md present initially
 
 # After foundation files
 git status                 → new files staged for commit
 cat README.md / package.json / .gitignore / .env.example / docs/* → content verified
+
+# Post-review scan (this correction pass)
+git remote -v              → confirmed clean URL (no token)
+git config user.*          → identity set
+All foundation files re-read and validated
 ```
 
 - No unit tests, lint, or production build were run because no application source or `node_modules` exist yet. This is expected and documented.
-- No secrets were present in the working tree.
+- No secrets were present in the committed working tree.
 
 ## F. Security Considerations
 
-- No credentials, tokens, or private keys are stored in the repository.
+- No credentials, tokens, or private keys are stored in the committed repository files.
 - `.env*` files (except the example) are gitignored.
-- The GitHub personal access token that was previously shared in chat should be **revoked immediately** and replaced with a new, scoped token if further pushes are needed.
+- The GitHub personal access token that was previously shared in chat **must still be revoked** by the owner. Even though it is no longer embedded in the local remote URL after this correction, it was exposed in chat and should be considered compromised.
 - Future stages will enforce server-side authorization and project isolation.
 
 ## G. Known Limitations
@@ -99,3 +105,12 @@ git branch -D stage/01-repository-foundation
 ```
 
 No database migrations or irreversible infrastructure changes were made.
+
+## J. Post-Review Corrections (this update)
+
+Issues found and fixed during the requested Stage 1 scan:
+
+1. **Token embedded in local Git remote URL** — Removed. The remote now points to the clean `https://github.com/CoreLink-tech/Analytics.git` URL.
+2. **Git user identity missing on fresh clones** — Re-configured (`CoreLink-tech` / `ashedavid2005@gmail.com`).
+3. **Stage report updated** — Status, security notes, and verification section refreshed to reflect the correction pass.
+4. **No other functional or content defects** found in the foundation files. The absence of application source code remains intentional and documented.
