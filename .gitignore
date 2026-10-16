@@ -58,3 +58,7 @@ next-env.d.ts
 # logs
 logs/
 *.log
+
+# local sqlite database
+/data
+*.db

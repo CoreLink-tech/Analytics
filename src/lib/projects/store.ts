@@ -1,4 +1,6 @@
 import { randomUUID } from "crypto";
+import { getDb } from "@/lib/db/client";
+import { ensureDbReady } from "@/lib/db/ensure";
 
 export type Project = {
   id: string;
@@ -10,28 +12,6 @@ export type Project = {
   updatedAt: string;
 };
 
-type ProjectStore = {
-  byId: Map<string, Project>;
-  byUser: Map<string, Set<string>>;
-};
-
-/**
- * In-memory project store for Stage 5.
- * Stage 6 will migrate projects to Cloudflare D1.
- */
-function getStore(): ProjectStore {
-  const g = globalThis as typeof globalThis & {
-    __ahaProjectStore?: ProjectStore;
-  };
-  if (!g.__ahaProjectStore) {
-    g.__ahaProjectStore = {
-      byId: new Map(),
-      byUser: new Map(),
-    };
-  }
-  return g.__ahaProjectStore;
-}
-
 export type ProjectInput = {
   name: string;
   domain?: string | null;
@@ -42,7 +22,6 @@ function normalizeDomain(domain: string | null | undefined): string | null {
   if (!domain) return null;
   const trimmed = domain.trim();
   if (!trimmed) return null;
-  // Strip protocol for cleaner storage
   return trimmed.replace(/^https?:\/\//i, "").replace(/\/$/, "") || null;
 }
 
@@ -67,67 +46,80 @@ export function validateProjectInput(
     return { error: "Description must be at most 500 characters." };
   }
 
+  return { data: { name, domain, description } };
+}
+
+function rowToProject(row: Record<string, unknown>): Project {
   return {
-    data: {
-      name,
-      domain,
-      description,
-    },
+    id: String(row.id),
+    userId: String(row.user_id),
+    name: String(row.name),
+    domain: row.domain == null ? null : String(row.domain),
+    description: row.description == null ? null : String(row.description),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
   };
 }
 
 export async function listProjectsForUser(userId: string): Promise<Project[]> {
-  const store = getStore();
-  const ids = store.byUser.get(userId);
-  if (!ids) return [];
-  const projects: Project[] = [];
-  for (const id of ids) {
-    const p = store.byId.get(id);
-    if (p) projects.push(p);
-  }
-  return projects.sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
+  await ensureDbReady();
+  const db = getDb();
+  const result = await db.execute({
+    sql: `SELECT id, user_id, name, domain, description, created_at, updated_at
+          FROM projects WHERE user_id = ? ORDER BY updated_at DESC`,
+    args: [userId],
+  });
+  return result.rows.map((r) => rowToProject(r as Record<string, unknown>));
 }
 
 export async function getProjectForUser(
   projectId: string,
   userId: string
 ): Promise<Project | null> {
-  const store = getStore();
-  const project = store.byId.get(projectId);
-  if (!project || project.userId !== userId) {
-    return null;
-  }
-  return project;
+  await ensureDbReady();
+  const db = getDb();
+  const result = await db.execute({
+    sql: `SELECT id, user_id, name, domain, description, created_at, updated_at
+          FROM projects WHERE id = ? AND user_id = ?`,
+    args: [projectId, userId],
+  });
+  if (result.rows.length === 0) return null;
+  return rowToProject(result.rows[0] as Record<string, unknown>);
 }
 
 export async function createProject(
   userId: string,
   input: ProjectInput
 ): Promise<{ project: Project } | { error: string }> {
+  await ensureDbReady();
   const validated = validateProjectInput(input);
-  if ("error" in validated) {
-    return { error: validated.error };
-  }
+  if ("error" in validated) return { error: validated.error };
 
   const now = new Date().toISOString();
   const project: Project = {
     id: randomUUID(),
     userId,
-    name: validated.data.name,
+    name: validated.data.name!,
     domain: validated.data.domain ?? null,
     description: validated.data.description ?? null,
     createdAt: now,
     updatedAt: now,
   };
 
-  const store = getStore();
-  store.byId.set(project.id, project);
-  if (!store.byUser.has(userId)) {
-    store.byUser.set(userId, new Set());
-  }
-  store.byUser.get(userId)!.add(project.id);
+  const db = getDb();
+  await db.execute({
+    sql: `INSERT INTO projects (id, user_id, name, domain, description, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      project.id,
+      project.userId,
+      project.name,
+      project.domain,
+      project.description,
+      project.createdAt,
+      project.updatedAt,
+    ],
+  });
 
   return { project };
 }
@@ -137,47 +129,57 @@ export async function updateProject(
   userId: string,
   input: ProjectInput
 ): Promise<{ project: Project } | { error: string }> {
+  await ensureDbReady();
   const existing = await getProjectForUser(projectId, userId);
-  if (!existing) {
-    return { error: "Project not found." };
-  }
+  if (!existing) return { error: "Project not found." };
 
   const validated = validateProjectInput(input);
-  if ("error" in validated) {
-    return { error: validated.error };
-  }
+  if ("error" in validated) return { error: validated.error };
 
   const updated: Project = {
     ...existing,
-    name: validated.data.name,
+    name: validated.data.name!,
     domain: validated.data.domain ?? null,
     description: validated.data.description ?? null,
     updatedAt: new Date().toISOString(),
   };
 
-  getStore().byId.set(projectId, updated);
+  const db = getDb();
+  await db.execute({
+    sql: `UPDATE projects
+          SET name = ?, domain = ?, description = ?, updated_at = ?
+          WHERE id = ? AND user_id = ?`,
+    args: [
+      updated.name,
+      updated.domain,
+      updated.description,
+      updated.updatedAt,
+      projectId,
+      userId,
+    ],
+  });
+
   return { project: updated };
 }
 
 /**
- * Deletion policy (Stage 5):
- * - Only the owning user can delete.
- * - Removes the project record.
- * - Associated analytics records / import history will be removed in later
- *   stages when those entities exist (cascading delete documented then).
+ * Deletion policy:
+ * - Only the owning user can delete (enforced by WHERE user_id).
+ * - CASCADE removes import_batches and analytics_records for the project.
  */
 export async function deleteProject(
   projectId: string,
   userId: string
 ): Promise<{ ok: true } | { error: string }> {
+  await ensureDbReady();
   const existing = await getProjectForUser(projectId, userId);
-  if (!existing) {
-    return { error: "Project not found." };
-  }
+  if (!existing) return { error: "Project not found." };
 
-  const store = getStore();
-  store.byId.delete(projectId);
-  store.byUser.get(userId)?.delete(projectId);
+  const db = getDb();
+  await db.execute({
+    sql: "DELETE FROM projects WHERE id = ? AND user_id = ?",
+    args: [projectId, userId],
+  });
 
   return { ok: true };
 }

@@ -1,77 +1,39 @@
 # Architecture Overview — Analytics History Archive
 
-*Last updated: Stage 2 (Design System & Application Shell)*
+*Last updated: Stage 6 (Database)*
 
 ## Product Summary
 
-Analytics History Archive is a SaaS application that lets users:
+Long-term analytics archive: import, store, visualize, and export historical website analytics.
 
-- Import historical analytics data (CSV, JSON; later provider integrations)
-- Store it in a structured database under their own projects
-- Visualize trends with charts and date filters
-- Export their data
-- Eventually connect live sources and use AI for screenshot extraction
+## Stack
 
-It is **not** a live analytics tracker. It is a long-term archive and analysis tool.
+| Layer | Choice |
+|-------|--------|
+| App | Next.js 15 App Router + TypeScript |
+| UI | Tailwind CSS v4 + design tokens |
+| Auth | Auth.js (credentials) + bcrypt |
+| Database | libsql / SQLite (file local; Turso remote) — D1-compatible SQL |
+| Hosting target | Vercel (app); remote SQL URL for multi-instance |
 
-## High-Level Architecture (Target)
+## Data model
 
+- **users** — credential accounts
+- **projects** — website archives owned by a user
+- **import_batches** — import job metadata
+- **analytics_records** — normalized metric observations
+
+Ownership is enforced in application queries (`user_id` / project ownership checks).
+
+## Database setup
+
+```bash
+npm run db:migrate
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Browser /      │────▶│  Next.js App     │────▶│  Cloudflare D1  │
-│  Mobile Client  │◀────│  (Vercel)        │◀────│  (structured    │
-└─────────────────┘     │                  │     │   analytics &   │
-                        │  - App Router    │     │   metadata)     │
-                        │  - API Routes /  │     └─────────────────┘
-                        │    Server Actions│
-                        │  - Auth          │     ┌─────────────────┐
-                        │  - Validation    │────▶│  Cloudflare R2  │
-                        └──────────────────┘     │  (uploaded      │
-                                                 │   CSV/JSON/     │
-                                                 │   screenshots)  │
-                                                 └─────────────────┘
-```
 
-## Current Implementation (Stage 2)
+Default URL: `file:./data/aha.db`  
+Override: `DATABASE_URL` (+ optional `DATABASE_AUTH_TOKEN` for Turso).
 
-- Next.js 15 App Router + TypeScript
-- Tailwind CSS v4 with CSS custom-property design tokens
-- Reusable UI primitives under `src/components/ui/`
-- Application shell (`AppShell` + `Sidebar` + `Header`) under `src/components/layout/`
-- Design-system preview at `/dashboard`
-- No authentication, database, or import logic yet
+## Security principles
 
-## Key Design Decisions
-
-1. **Empty starting point** — Repository began with only a one-line README.
-2. **Next.js + TypeScript + App Router** — Modern React development and Vercel compatibility.
-3. **Tailwind v4 + CSS tokens** — Semantic colors and easy theming without a large component library.
-4. **Cloudflare D1 + R2** — Target data layer; connection method verified in Stage 6.
-5. **No secrets in repo** — All credentials via environment variables.
-6. **Stage-gated development** — One stage at a time with documentation and explicit approval.
-
-## Data Model (Conceptual — implemented in Stage 6)
-
-- Users (managed by auth provider)
-- Projects (website archives owned by a user)
-- Import Batches
-- Analytics Records
-- Integration Connections (later stages)
-
-## Security Principles
-
-- Server-side authorization on every private resource
-- Project ownership checks on every query
-- File upload validation
-- No secrets in client bundles or logs
-- CSV formula injection protection on export
-
-## Known Constraints
-
-- No production deployment, database, or auth provider provisioned yet.
-- Mobile-first responsive design and accessibility are required from Stage 2 onward (shell is responsive).
-- Real feature routes will replace the current design-system preview links in later stages.
-
-## Next Stage
-
-Stage 3 will build the public landing page with accurate product messaging, hero, how-it-works, features, and CTAs.
+Server-side auth, project isolation, parameterized SQL, no secrets in repo.

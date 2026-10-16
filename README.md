@@ -4,9 +4,9 @@
 
 ## Current Status
 
-**Stage 5 completed** — Website Project Management.
+**Stage 6 completed** — Database and Analytics Data Model.
 
-Branch: `stage/05-project-management`
+Branch: `stage/06-database`
 
 ## Getting Started
 
@@ -14,19 +14,14 @@ Branch: `stage/05-project-management`
 npm install
 cp .env.example .env.local
 # Set AUTH_SECRET (openssl rand -base64 32)
+npm run db:migrate
 npm run dev
 ```
 
-- `/` landing  
-- `/register` / `/login` auth  
-- `/dashboard` overview (protected)  
-- `/dashboard/websites` project list  
-- `/dashboard/websites/new` create project  
-
-**Note:** Users and projects are stored in memory until Stage 6 (database).
+Local SQLite DB is created at `data/aha.db` (gitignored).
 
 ## Stages
 
-1–4 done · **5 Project management** ← current · 6 Database · 7 Import · …
+1–5 done · **6 Database** ← current · 7 Import · 8 Dashboard · …
 
 See `docs/stages/`.

@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
+import { getDb } from "@/lib/db/client";
+import { ensureDbReady } from "@/lib/db/ensure";
 
 export type StoredUser = {
   id: string;
@@ -9,43 +11,42 @@ export type StoredUser = {
   createdAt: string;
 };
 
-type UserStore = {
-  byEmail: Map<string, StoredUser>;
-  byId: Map<string, StoredUser>;
-};
-
-/**
- * In-memory user store for Stage 4.
- *
- * Limitation: data is process-local. On serverless platforms (e.g. Vercel)
- * each instance has its own memory, so accounts will not persist across
- * cold starts or multiple instances. Stage 6 will move users to Cloudflare D1.
- */
-function getStore(): UserStore {
-  const g = globalThis as typeof globalThis & { __ahaUserStore?: UserStore };
-  if (!g.__ahaUserStore) {
-    g.__ahaUserStore = {
-      byEmail: new Map(),
-      byId: new Map(),
-    };
-  }
-  return g.__ahaUserStore;
-}
-
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function rowToUser(row: Record<string, unknown>): StoredUser {
+  return {
+    id: String(row.id),
+    email: String(row.email),
+    name: String(row.name),
+    passwordHash: String(row.password_hash),
+    createdAt: String(row.created_at),
+  };
 }
 
 export async function findUserByEmail(
   email: string
 ): Promise<StoredUser | null> {
-  const store = getStore();
-  return store.byEmail.get(normalizeEmail(email)) ?? null;
+  await ensureDbReady();
+  const db = getDb();
+  const result = await db.execute({
+    sql: "SELECT id, email, name, password_hash, created_at FROM users WHERE email = ?",
+    args: [normalizeEmail(email)],
+  });
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0] as Record<string, unknown>);
 }
 
 export async function findUserById(id: string): Promise<StoredUser | null> {
-  const store = getStore();
-  return store.byId.get(id) ?? null;
+  await ensureDbReady();
+  const db = getDb();
+  const result = await db.execute({
+    sql: "SELECT id, email, name, password_hash, created_at FROM users WHERE id = ?",
+    args: [id],
+  });
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0] as Record<string, unknown>);
 }
 
 export async function createUser(input: {
@@ -53,6 +54,8 @@ export async function createUser(input: {
   name: string;
   password: string;
 }): Promise<{ user: StoredUser } | { error: string }> {
+  await ensureDbReady();
+
   const email = normalizeEmail(input.email);
   const name = input.name.trim();
 
@@ -69,8 +72,8 @@ export async function createUser(input: {
     return { error: "Password is too long." };
   }
 
-  const store = getStore();
-  if (store.byEmail.has(email)) {
+  const existing = await findUserByEmail(email);
+  if (existing) {
     return { error: "An account with this email already exists." };
   }
 
@@ -83,8 +86,20 @@ export async function createUser(input: {
     createdAt: new Date().toISOString(),
   };
 
-  store.byEmail.set(email, user);
-  store.byId.set(user.id, user);
+  const db = getDb();
+  try {
+    await db.execute({
+      sql: `INSERT INTO users (id, email, name, password_hash, created_at)
+            VALUES (?, ?, ?, ?, ?)`,
+      args: [user.id, user.email, user.name, user.passwordHash, user.createdAt],
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.toLowerCase().includes("unique")) {
+      return { error: "An account with this email already exists." };
+    }
+    throw err;
+  }
 
   return { user };
 }
@@ -96,7 +111,6 @@ export async function verifyPassword(
   return bcrypt.compare(password, user.passwordHash);
 }
 
-/** Safe public shape — never includes passwordHash */
 export function toPublicUser(user: StoredUser) {
   return {
     id: user.id,
