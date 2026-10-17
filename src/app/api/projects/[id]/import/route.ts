@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { assertFileSize, parseUpload } from "@/lib/analytics/parse";
 import { runImport, suggestMapping, type ColumnMapping } from "@/lib/analytics/import";
 import { getProjectForUser } from "@/lib/projects/store";
+import { rateLimit } from "@/lib/security/rate-limit";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -17,6 +18,15 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const { id: projectId } = await context.params;
+
+  const limited = rateLimit(`import:${session.user.id}`, 30, 60 * 60 * 1000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Too many import attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+
   const project = await getProjectForUser(projectId, session.user.id);
   if (!project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });

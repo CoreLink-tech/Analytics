@@ -1,3 +1,4 @@
+import { assertAuthSecretConfigured } from "@/lib/security/env";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
@@ -12,6 +13,8 @@ const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+assertAuthSecretConfigured();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,

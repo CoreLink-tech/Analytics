@@ -1,8 +1,38 @@
 # Analytics History Archive
 
-**Stage 9 completed** — Export, History & Data Management.
+> Your analytics shouldn't disappear just because your provider forgets them.
 
-Branch: `stage/09-export-data-management`
+## Status
 
-Core MVP remaining: **Stage 10** (security / testing / stabilize).  
-Optional: 11–12. R2 deferred until product is otherwise complete.
+**Stage 10 completed** — Security, Testing & MVP Stabilization.
+
+**Core MVP stages 1–10 are complete** on branch `stage/10-security-mvp`.
+
+Optional later: Stage 11 (Vercel Analytics), Stage 12 (AI insights).  
+Object storage (R2) is deferred until you choose to add it after the product is otherwise done.
+
+## Quick start
+
+```bash
+npm install
+cp .env.example .env.local
+# AUTH_SECRET=...   (required in production)
+npm run db:migrate
+npm run dev
+```
+
+## Features
+
+- Auth (register / login)
+- Website projects CRUD
+- SQLite/libsql database
+- CSV/JSON import with mapping
+- Historical dashboard (charts + table)
+- Export CSV/JSON, import history, filtered deletes
+- Security headers, rate limits, health check
+
+## Docs
+
+- `docs/SECURITY.md`
+- `docs/architecture.md`
+- `docs/stages/`

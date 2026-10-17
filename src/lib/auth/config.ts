@@ -19,10 +19,15 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isAuthPage =
         pathname.startsWith("/login") || pathname.startsWith("/register");
-      const isProtected =
+      const isApiProjects = pathname.startsWith("/api/projects");
+      const isProtectedPage =
         pathname.startsWith("/dashboard") || pathname.startsWith("/app");
 
-      if (isProtected) {
+      if (isApiProjects && !isLoggedIn) {
+        return Response.json({ error: "Unauthorized." }, { status: 401 });
+      }
+
+      if (isProtectedPage) {
         return isLoggedIn;
       }
 
