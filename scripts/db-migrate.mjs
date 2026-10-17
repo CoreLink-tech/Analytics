@@ -19,6 +19,7 @@ const url =
 const authToken = process.env.DATABASE_AUTH_TOKEN;
 
 const db = createClient(authToken ? { url, authToken } : { url });
+await db.execute("PRAGMA foreign_keys = ON");
 
 await db.execute(`
   CREATE TABLE IF NOT EXISTS schema_migrations (

@@ -1,23 +1,33 @@
+import { getDb, isProductionDbRuntime } from "@/lib/db/client";
 import { runMigrations } from "@/lib/db/migrate";
 
-let migrated = false;
-let migrating: Promise<void> | null = null;
+let ready = false;
+let preparing: Promise<void> | null = null;
 
 /**
- * Ensure migrations have been applied once per process.
- * Safe to call from API routes and server components.
+ * Ensure the database client is ready (foreign keys on).
+ * In development (and when ALLOW_AUTO_MIGRATE=1), also applies migrations.
+ * In production, migrations must be applied via `npm run db:migrate` in deploy.
  */
 export async function ensureDbReady(): Promise<void> {
-  if (migrated) return;
-  if (!migrating) {
-    migrating = runMigrations()
-      .then(() => {
-        migrated = true;
-      })
-      .catch((err) => {
-        migrating = null;
-        throw err;
-      });
+  if (ready) return;
+  if (!preparing) {
+    preparing = (async () => {
+      // Always establish connection + FK pragma
+      await getDb();
+
+      const autoMigrate =
+        !isProductionDbRuntime() || process.env.ALLOW_AUTO_MIGRATE === "1";
+
+      if (autoMigrate) {
+        await runMigrations();
+      }
+
+      ready = true;
+    })().catch((err) => {
+      preparing = null;
+      throw err;
+    });
   }
-  await migrating;
+  await preparing;
 }

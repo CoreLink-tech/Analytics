@@ -7,14 +7,13 @@ import { getDb, resetDbClient } from "@/lib/db/client";
  * Tracks applied migrations in schema_migrations.
  */
 export async function runMigrations(): Promise<{ applied: string[] }> {
-  // Ensure data directory exists for file: databases
   const dataDir = path.join(process.cwd(), "data");
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
   resetDbClient();
-  const db = getDb();
+  const db = await getDb();
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -42,14 +41,12 @@ export async function runMigrations(): Promise<{ applied: string[] }> {
     }
 
     const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
-    // Split on semicolons carefully — run whole file via batch when possible
     const statements = sql
       .split(";")
       .map((s) => s.trim())
       .filter((s) => s.length > 0 && !s.startsWith("--"));
 
     for (const statement of statements) {
-      // Skip pure comment blocks
       const withoutComments = statement
         .split("\n")
         .filter((line) => !line.trim().startsWith("--"))

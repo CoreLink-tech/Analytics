@@ -63,7 +63,7 @@ function rowToProject(row: Record<string, unknown>): Project {
 
 export async function listProjectsForUser(userId: string): Promise<Project[]> {
   await ensureDbReady();
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: `SELECT id, user_id, name, domain, description, created_at, updated_at
           FROM projects WHERE user_id = ? ORDER BY updated_at DESC`,
@@ -77,7 +77,7 @@ export async function getProjectForUser(
   userId: string
 ): Promise<Project | null> {
   await ensureDbReady();
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: `SELECT id, user_id, name, domain, description, created_at, updated_at
           FROM projects WHERE id = ? AND user_id = ?`,
@@ -106,7 +106,7 @@ export async function createProject(
     updatedAt: now,
   };
 
-  const db = getDb();
+  const db = await getDb();
   await db.execute({
     sql: `INSERT INTO projects (id, user_id, name, domain, description, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -144,7 +144,7 @@ export async function updateProject(
     updatedAt: new Date().toISOString(),
   };
 
-  const db = getDb();
+  const db = await getDb();
   await db.execute({
     sql: `UPDATE projects
           SET name = ?, domain = ?, description = ?, updated_at = ?
@@ -175,7 +175,7 @@ export async function deleteProject(
   const existing = await getProjectForUser(projectId, userId);
   if (!existing) return { error: "Project not found." };
 
-  const db = getDb();
+  const db = await getDb();
   await db.execute({
     sql: "DELETE FROM projects WHERE id = ? AND user_id = ?",
     args: [projectId, userId],

@@ -54,7 +54,7 @@ export async function listRecordsForProject(
   const limit = Math.min(Math.max(options?.limit ?? 100, 1), 1000);
   const offset = Math.max(options?.offset ?? 0, 0);
 
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: `SELECT * FROM analytics_records
           WHERE project_id = ?
@@ -91,7 +91,7 @@ export async function createImportBatch(input: {
     errorSummary: null,
   };
 
-  const db = getDb();
+  const db = await getDb();
   await db.execute({
     sql: `INSERT INTO import_batches (
             id, project_id, user_id, source, original_file_name, status,
@@ -126,7 +126,7 @@ export async function listImportBatchesForProject(
   const project = await getProjectForUser(projectId, userId);
   if (!project) return null;
 
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: `SELECT * FROM import_batches
           WHERE project_id = ? AND user_id = ?

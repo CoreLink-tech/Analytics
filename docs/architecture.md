@@ -34,6 +34,8 @@ npm run db:migrate
 Default URL: `file:./data/aha.db`  
 Override: `DATABASE_URL` (+ optional `DATABASE_AUTH_TOKEN` for Turso).
 
+Production requires `DATABASE_URL`. Foreign keys are enabled on each connection. Auto-migrate runs in development only; use `npm run db:migrate` for production. R2 storage is deferred until after the core product stages.
+
 ## Security principles
 
 Server-side auth, project isolation, parameterized SQL, no secrets in repo.

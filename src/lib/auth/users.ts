@@ -29,7 +29,7 @@ export async function findUserByEmail(
   email: string
 ): Promise<StoredUser | null> {
   await ensureDbReady();
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: "SELECT id, email, name, password_hash, created_at FROM users WHERE email = ?",
     args: [normalizeEmail(email)],
@@ -40,7 +40,7 @@ export async function findUserByEmail(
 
 export async function findUserById(id: string): Promise<StoredUser | null> {
   await ensureDbReady();
-  const db = getDb();
+  const db = await getDb();
   const result = await db.execute({
     sql: "SELECT id, email, name, password_hash, created_at FROM users WHERE id = ?",
     args: [id],
@@ -86,7 +86,7 @@ export async function createUser(input: {
     createdAt: new Date().toISOString(),
   };
 
-  const db = getDb();
+  const db = await getDb();
   try {
     await db.execute({
       sql: `INSERT INTO users (id, email, name, password_hash, created_at)

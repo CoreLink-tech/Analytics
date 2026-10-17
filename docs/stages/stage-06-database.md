@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-16  
 **Branch:** `stage/06-database`  
-**Status:** Completed — awaiting approval
+**Status:** Completed (with post-review corrections) — awaiting approval
 
 ## A. Stage Overview
 
@@ -71,3 +71,10 @@ git checkout main
 # or stage/05-project-management
 ```
 Remove local `data/aha.db` if discarding local schema.
+
+## J. Post-Review Corrections
+
+1. **Foreign keys on app connections** — `getDb()` runs `PRAGMA foreign_keys = ON` for every process connection.
+2. **Production DATABASE_URL required** — local file DB is refused when `NODE_ENV=production`, `VERCEL=1`, or `CF_PAGES=1`.
+3. **Auto-migrate only in development** — production must run `npm run db:migrate` (or set `ALLOW_AUTO_MIGRATE=1`).
+4. **R2 deferred** — object storage will be added only after the rest of the product is complete.
