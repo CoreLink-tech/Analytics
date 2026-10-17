@@ -1,27 +1,24 @@
 # Analytics History Archive
 
-> Your analytics shouldn't disappear just because your provider forgets them.
-
 ## Current Status
 
-**Stage 6 completed** — Database and Analytics Data Model.
+**Stage 7 completed** — CSV / JSON Import.
 
-Branch: `stage/06-database`
+Branch: `stage/07-csv-json-import`
 
 ## Getting Started
 
 ```bash
 npm install
-cp .env.example .env.local
-# Set AUTH_SECRET (openssl rand -base64 32)
+cp .env.example .env.local   # AUTH_SECRET; DATABASE_URL in production
 npm run db:migrate
 npm run dev
 ```
 
-Local SQLite DB is created at `data/aha.db` (gitignored).
+Import: sign in → My Websites → project → **Import data**.
 
-## Stages
+R2 object storage is deferred until the product is otherwise complete.
 
-1–5 done · **6 Database** ← current · 7 Import · 8 Dashboard · …
+## Stages remaining after this
 
-See `docs/stages/`.
+8 Dashboard · 9 Export & history · 10 Security/MVP · 11–12 optional integrations

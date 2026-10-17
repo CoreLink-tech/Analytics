@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getProjectForUser } from "@/lib/projects/store";
+import { listImportBatchesForProject } from "@/lib/analytics/records";
+import { listRecordsForProject } from "@/lib/analytics/records";
 import { AppShell } from "@/components/layout/app-shell";
 import {
   Card,
@@ -27,6 +29,11 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const batches = (await listImportBatchesForProject(id, session.user.id)) ?? [];
+  const records = (await listRecordsForProject(id, session.user.id, { limit: 5 })) ?? [];
+  const recordCountHint =
+    records.length >= 5 ? "5+ recent" : String(records.length);
+
   return (
     <AppShell
       title={project.name}
@@ -51,12 +58,20 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
               </p>
             )}
           </div>
-          <Link
-            href={`/dashboard/websites/${project.id}/edit`}
-            className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            Edit
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/websites/${project.id}/import`}
+              className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Import data
+            </Link>
+            <Link
+              href={`/dashboard/websites/${project.id}/edit`}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Edit
+            </Link>
+          </div>
         </div>
 
         <Card>
@@ -88,10 +103,69 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        <EmptyState
-          title="No analytics imported yet"
-          description="CSV and JSON import arrives in a later stage. This project is ready to receive data."
-        />
+        {batches.length === 0 ? (
+          <EmptyState
+            title="No analytics imported yet"
+            description="Upload a CSV or JSON export to start building this project's history."
+            action={
+              <Link
+                href={`/dashboard/websites/${project.id}/import`}
+                className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+              >
+                Import data
+              </Link>
+            }
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Import history</CardTitle>
+              <CardDescription>
+                Recent batches · showing up to {recordCountHint} sample records in the database
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <ul className="space-y-2">
+                {batches.slice(0, 10).map((b) => (
+                  <li
+                    key={b.id}
+                    className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2 last:border-0"
+                  >
+                    <span className="text-foreground">
+                      {b.originalFileName || b.source} · {b.status}
+                    </span>
+                    <span className="text-xs text-foreground-subtle">
+                      {b.acceptedRows} accepted · {b.rejectedRows} rejected ·{" "}
+                      {b.duplicateRows} dupes
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {records.length > 0 && (
+                <div className="overflow-x-auto pt-2">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="text-foreground-subtle">
+                        <th className="py-1 pr-2">Date</th>
+                        <th className="py-1 pr-2">Metric</th>
+                        <th className="py-1 pr-2">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {records.map((r) => (
+                        <tr key={r.id} className="text-foreground">
+                          <td className="py-1 pr-2">{r.observationDate}</td>
+                          <td className="py-1 pr-2">{r.metricName}</td>
+                          <td className="py-1 pr-2">{r.metricValue}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <div className="border-t border-border pt-6">
           <h3 className="text-sm font-semibold text-foreground">Danger zone</h3>
