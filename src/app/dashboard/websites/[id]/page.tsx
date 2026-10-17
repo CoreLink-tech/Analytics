@@ -72,6 +72,12 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
               Import data
             </Link>
             <Link
+              href={`/dashboard/websites/${project.id}/manage`}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Manage data
+            </Link>
+            <Link
               href={`/dashboard/websites/${project.id}/edit`}
               className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >

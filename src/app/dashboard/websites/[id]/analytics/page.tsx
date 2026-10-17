@@ -88,12 +88,32 @@ export default async function AnalyticsDashboardPage({
               Explore imported metrics over time
             </p>
           </div>
-          <Link
-            href={`/dashboard/websites/${project.id}/import`}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium hover:bg-background-subtle"
-          >
-            Import more
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={buildExportHref(project.id, "csv", range, metric)}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium hover:bg-background-subtle"
+            >
+              Export CSV
+            </a>
+            <a
+              href={buildExportHref(project.id, "json", range, metric)}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium hover:bg-background-subtle"
+            >
+              Export JSON
+            </a>
+            <Link
+              href={`/dashboard/websites/${project.id}/manage`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium hover:bg-background-subtle"
+            >
+              Manage data
+            </Link>
+            <Link
+              href={`/dashboard/websites/${project.id}/import`}
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium hover:bg-background-subtle"
+            >
+              Import more
+            </Link>
+          </div>
         </div>
 
         {!hasData ? (
@@ -245,4 +265,17 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 function formatNum(n: number): string {
   if (Number.isInteger(n)) return n.toLocaleString();
   return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function buildExportHref(
+  projectId: string,
+  format: "csv" | "json",
+  range: { from: string | null; to: string | null },
+  metric: string | null
+): string {
+  const params = new URLSearchParams({ format });
+  if (range.from) params.set("from", range.from);
+  if (range.to) params.set("to", range.to);
+  if (metric) params.set("metric", metric);
+  return `/api/projects/${projectId}/export?${params.toString()}`;
 }
