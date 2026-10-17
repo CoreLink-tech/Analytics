@@ -60,8 +60,14 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
-              href={`/dashboard/websites/${project.id}/import`}
+              href={`/dashboard/websites/${project.id}/analytics`}
               className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              View analytics
+            </Link>
+            <Link
+              href={`/dashboard/websites/${project.id}/import`}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-border-strong bg-background px-3 text-sm font-medium text-foreground hover:bg-background-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Import data
             </Link>

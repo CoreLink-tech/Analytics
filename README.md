@@ -1,24 +1,13 @@
 # Analytics History Archive
 
-## Current Status
+**Stage 8 completed** — Historical Analytics Dashboard.
 
-**Stage 7 completed** — CSV / JSON Import.
-
-Branch: `stage/07-csv-json-import`
-
-## Getting Started
+Branch: `stage/08-analytics-dashboard`
 
 ```bash
-npm install
-cp .env.example .env.local   # AUTH_SECRET; DATABASE_URL in production
-npm run db:migrate
-npm run dev
+npm install && npm run db:migrate && npm run dev
 ```
 
-Import: sign in → My Websites → project → **Import data**.
+Open a project → **View analytics**.
 
-R2 object storage is deferred until the product is otherwise complete.
-
-## Stages remaining after this
-
-8 Dashboard · 9 Export & history · 10 Security/MVP · 11–12 optional integrations
+Remaining core stages: 9 (export/history), 10 (security/MVP). Optional: 11–12.
