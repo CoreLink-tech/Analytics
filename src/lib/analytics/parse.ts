@@ -1,9 +1,12 @@
+import { expandVercelRecords } from "@/lib/analytics/vercel-normalize";
 /**
  * Parse CSV / JSON analytics exports into normalized row candidates.
  * No permanent file storage in Stage 7 (R2 deferred).
  */
 
 export type RawImportRow = Record<string, string | number | null | undefined>;
+
+// Lazy import avoided — expand called from parseJson when detected
 
 export type ParsedFile = {
   format: "csv" | "json";
@@ -127,10 +130,35 @@ export function parseJson(text: string): ParsedFile {
     rows.push(row);
   }
 
+  // Expand wide Vercel-style rows (pageviews + visitors on one object)
+  let finalRows = rows;
+  const sample = rows[0];
+  if (
+    sample &&
+    ("pageviews" in sample ||
+      "pageViews" in sample ||
+      "visitors" in sample ||
+      "uniqueVisitors" in sample)
+  ) {
+    const expanded = expandVercelRecords(
+      rows as unknown as Record<string, unknown>[]
+    );
+    if (expanded.length > 0) {
+      finalRows = expanded;
+      headersSet.clear();
+      for (const r of finalRows) {
+        for (const k of Object.keys(r)) headersSet.add(k);
+      }
+      warnings.push(
+        "Expanded Vercel-style wide metrics into pageviews/visitors rows."
+      );
+    }
+  }
+
   return {
     format: "json",
     headers: Array.from(headersSet),
-    rows,
+    rows: finalRows,
     warnings,
   };
 }

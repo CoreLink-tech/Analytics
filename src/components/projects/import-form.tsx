@@ -161,8 +161,9 @@ export function ImportForm({ projectId }: { projectId: string }) {
             disabled={loading}
           />
           <p className="text-xs text-foreground-subtle">
-            Max 5 MB / 10,000 rows. Original files are not stored in object
-            storage yet (deferred). Parsed rows are saved to the database.
+            Max 5 MB / 10,000 rows. Supports CSV and JSON. Vercel-style JSON
+            with pageviews/visitors is expanded automatically. Originals are
+            not stored in object storage yet (R2 deferred).
           </p>
         </div>
         <Button type="submit" variant="outline" loading={loading} disabled={!file}>
