@@ -1,20 +1,18 @@
 # Analytics History Archive
 
-**Stage 11 completed** — Optional Vercel Analytics Integration.
+**Stage 12 completed** — Optional AI Insights.
 
-Branch: `stage/11-vercel-analytics`
+All planned stages **1–12** are implemented on branch `stage/12-ai-insights`.
 
-Core MVP: stages **1–10**. Optional: **11** (this), **12** (AI insights). R2 still deferred.
+R2 object storage remains deferred until you choose to add it after the product is otherwise done.
 
-## Vercel
-
-- App ships with `@vercel/analytics` and `@vercel/speed-insights`.
-- Deploy on Vercel and enable Analytics in the project dashboard.
-- Import Vercel-style JSON (pageviews/visitors) via project → Import data.
+## Optional AI
 
 ```bash
-npm install
-cp .env.example .env.local
-npm run db:migrate
-npm run dev
+# .env.local
+AI_API_KEY=your_key
+AI_BASE_URL=https://api.x.ai/v1   # OpenAI-compatible
+AI_MODEL=grok-3
 ```
+
+Without a key, **Generate insights** still returns a local summary from stored metrics.

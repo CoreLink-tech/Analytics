@@ -12,6 +12,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { DashboardFilters } from "@/components/analytics/dashboard-filters";
 import { MetricChart } from "@/components/analytics/metric-chart";
+import { InsightsPanel } from "@/components/analytics/insights-panel";
 import {
   Card,
   CardContent,
@@ -139,6 +140,8 @@ export default async function AnalyticsDashboardPage({
                 initialMetric={metric ?? ""}
               />
             </Suspense>
+
+            <InsightsPanel projectId={project.id} />
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <SummaryCard
