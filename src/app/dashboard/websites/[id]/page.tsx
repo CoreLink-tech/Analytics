@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { getProjectForUser } from "@/lib/projects/store";
 import { listImportBatchesForProject } from "@/lib/analytics/records";
 import { listRecordsForProject } from "@/lib/analytics/records";
+import { listApiKeysForProject } from "@/lib/projects/api-keys";
 import { AppShell } from "@/components/layout/app-shell";
 import {
   Card,
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
+import { ApiKeyPanel } from "@/components/projects/api-key-panel";
 import { EmptyState } from "@/components/ui/empty-state";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -31,8 +33,13 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
 
   const batches = (await listImportBatchesForProject(id, session.user.id)) ?? [];
   const records = (await listRecordsForProject(id, session.user.id, { limit: 5 })) ?? [];
+  const apiKeys = (await listApiKeysForProject(id, session.user.id)) ?? [];
   const recordCountHint =
     records.length >= 5 ? "5+ recent" : String(records.length);
+  const appOrigin =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    "https://your-app.vercel.app";
+
 
   return (
     <AppShell
@@ -112,6 +119,23 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Connect website (API)</CardTitle>
+            <CardDescription>
+              Generate a key for this project. Add it as an env var on your site
+              host, then POST metrics to the ingest endpoint.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ApiKeyPanel
+              projectId={project.id}
+              initialKeys={apiKeys}
+              appOrigin={appOrigin}
+            />
           </CardContent>
         </Card>
 
