@@ -17,11 +17,14 @@ type ProjectFormProps = {
   };
 };
 
+type DataSource = "csv_json" | "api" | "both";
+
 export function ProjectForm({ mode, projectId, initial }: ProjectFormProps) {
   const router = useRouter();
   const [name, setName] = useState(initial?.name ?? "");
   const [domain, setDomain] = useState(initial?.domain ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [dataSource, setDataSource] = useState<DataSource>("both");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +55,14 @@ export function ProjectForm({ mode, projectId, initial }: ProjectFormProps) {
       }
 
       if (mode === "create" && data.project?.id) {
-        router.push(`/dashboard/websites/${data.project.id}`);
+        const id = data.project.id;
+        if (dataSource === "csv_json") {
+          router.push(`/dashboard/websites/${id}/import`);
+        } else if (dataSource === "api") {
+          router.push(`/dashboard/websites/${id}?setup=api`);
+        } else {
+          router.push(`/dashboard/websites/${id}`);
+        }
       } else if (projectId) {
         router.push(`/dashboard/websites/${projectId}`);
       } else {
@@ -85,10 +95,11 @@ export function ProjectForm({ mode, projectId, initial }: ProjectFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="domain">Domain or URL (optional)</Label>
+        <Label htmlFor="domain">Domain (optional)</Label>
         <Input
           id="domain"
           name="domain"
+          maxLength={253}
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
           placeholder="example.com"
@@ -98,32 +109,88 @@ export function ProjectForm({ mode, projectId, initial }: ProjectFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="description">Description (optional)</Label>
-        <textarea
+        <Input
           id="description"
           name="description"
-          rows={3}
           maxLength={500}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Notes about this website project"
+          placeholder="Short note about this site"
           disabled={loading}
-          className="flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-foreground-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 hover:border-border-strong"
         />
       </div>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading}
-          onClick={() => router.back()}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" loading={loading}>
-          {mode === "create" ? "Create project" : "Save changes"}
-        </Button>
-      </div>
+      {mode === "create" && (
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-medium text-foreground">
+            How will you add analytics data?
+          </legend>
+          <p className="text-xs text-foreground-muted">
+            You can always use both later. This only chooses where we take you
+            after creating the project.
+          </p>
+          <div className="space-y-2">
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 hover:bg-background-subtle has-[:checked]:border-primary has-[:checked]:bg-primary-muted/40">
+              <input
+                type="radio"
+                name="dataSource"
+                className="mt-1"
+                checked={dataSource === "csv_json"}
+                onChange={() => setDataSource("csv_json")}
+                disabled={loading}
+              />
+              <span>
+                <span className="block text-sm font-medium text-foreground">
+                  Upload CSV or JSON files
+                </span>
+                <span className="text-xs text-foreground-muted">
+                  Import exports from analytics tools or spreadsheets.
+                </span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 hover:bg-background-subtle has-[:checked]:border-primary has-[:checked]:bg-primary-muted/40">
+              <input
+                type="radio"
+                name="dataSource"
+                className="mt-1"
+                checked={dataSource === "api"}
+                onChange={() => setDataSource("api")}
+                disabled={loading}
+              />
+              <span>
+                <span className="block text-sm font-medium text-foreground">
+                  Connect via API
+                </span>
+                <span className="text-xs text-foreground-muted">
+                  Generate a key and push metrics from your website or server.
+                </span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3 hover:bg-background-subtle has-[:checked]:border-primary has-[:checked]:bg-primary-muted/40">
+              <input
+                type="radio"
+                name="dataSource"
+                className="mt-1"
+                checked={dataSource === "both"}
+                onChange={() => setDataSource("both")}
+                disabled={loading}
+              />
+              <span>
+                <span className="block text-sm font-medium text-foreground">
+                  Both / decide later
+                </span>
+                <span className="text-xs text-foreground-muted">
+                  Open the project with import and API options available.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      )}
+
+      <Button type="submit" loading={loading} className="w-full sm:w-auto">
+        {mode === "create" ? "Create project" : "Save changes"}
+      </Button>
     </form>
   );
 }

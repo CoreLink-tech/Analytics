@@ -32,17 +32,18 @@ export default async function NewWebsitePage() {
             ← Back to websites
           </Link>
           <h2 className="mt-2 text-2xl font-semibold text-foreground">
-            Create website project
+            New website project
           </h2>
           <p className="mt-1 text-sm text-foreground-muted">
-            Each project stores analytics for one website or client site.
+            One project per site. Choose whether you will upload files, connect
+            an API, or both.
           </p>
         </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Project details</CardTitle>
             <CardDescription>
-              Name is required. Domain and description are optional.
+              Name is required. Then pick how you will add analytics data.
             </CardDescription>
           </CardHeader>
           <CardContent>
