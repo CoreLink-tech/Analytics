@@ -5,6 +5,10 @@ import { getProjectForUser } from "@/lib/projects/store";
 import { listImportBatchesForProject } from "@/lib/analytics/records";
 import { listRecordsForProject } from "@/lib/analytics/records";
 import { listApiKeysForProject } from "@/lib/projects/api-keys";
+import {
+  getDashboardSummary,
+  listMetricsForProject,
+} from "@/lib/analytics/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import {
   Card,
@@ -16,6 +20,7 @@ import {
 import { DeleteProjectButton } from "@/components/projects/delete-project-button";
 import { ApiKeyPanel } from "@/components/projects/api-key-panel";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Badge } from "@/components/ui/badge";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -31,15 +36,24 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const batches = (await listImportBatchesForProject(id, session.user.id)) ?? [];
-  const records = (await listRecordsForProject(id, session.user.id, { limit: 5 })) ?? [];
+  const batches =
+    (await listImportBatchesForProject(id, session.user.id)) ?? [];
+  const records =
+    (await listRecordsForProject(id, session.user.id, { limit: 10 })) ?? [];
   const apiKeys = (await listApiKeysForProject(id, session.user.id)) ?? [];
-  const recordCountHint =
-    records.length >= 5 ? "5+ recent" : String(records.length);
+  const metrics = (await listMetricsForProject(id, session.user.id)) ?? [];
+  const summary = await getDashboardSummary(
+    id,
+    session.user.id,
+    { from: null, to: null },
+    metrics[0] ?? null
+  );
   const appOrigin =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    "https://your-app.vercel.app";
+    "https://analytics-one-chi.vercel.app";
 
+  const totalRecords = summary?.totalRecords ?? records.length;
+  const hasData = totalRecords > 0;
 
   return (
     <AppShell
@@ -93,6 +107,105 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Project analytics preview */}
+        <Card>
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">Project analytics</CardTitle>
+              <CardDescription>
+                Data stored in your Turso database for this project. Open the
+                full dashboard for charts and filters.
+              </CardDescription>
+            </div>
+            <Link
+              href={`/dashboard/websites/${project.id}/analytics`}
+              className="inline-flex h-8 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+            >
+              Open full dashboard
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-border bg-background-subtle p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+                  Records
+                </p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                  {totalRecords.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-background-subtle p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+                  Metrics
+                </p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                  {summary?.metricCount ?? metrics.length}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-background-subtle p-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+                  Date range
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {summary?.minDate && summary?.maxDate
+                    ? `${summary.minDate} → ${summary.maxDate}`
+                    : "—"}
+                </p>
+              </div>
+            </div>
+
+            {!hasData ? (
+              <p className="text-sm text-foreground-muted">
+                No records yet. Data appears here after API ingest or CSV/JSON
+                import.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+                  Recent records
+                </p>
+                <table className="w-full min-w-[28rem] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs text-foreground-subtle">
+                      <th className="py-2 pr-3 font-medium">Date</th>
+                      <th className="py-2 pr-3 font-medium">Metric</th>
+                      <th className="py-2 pr-3 font-medium">Value</th>
+                      <th className="py-2 pr-3 font-medium">Path</th>
+                      <th className="py-2 font-medium">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.map((r) => (
+                      <tr
+                        key={r.id}
+                        className="border-b border-border/60 text-foreground"
+                      >
+                        <td className="py-2 pr-3 whitespace-nowrap">
+                          {r.observationDate}
+                        </td>
+                        <td className="py-2 pr-3">{r.metricName}</td>
+                        <td className="py-2 pr-3 tabular-nums">
+                          {Number.isInteger(r.metricValue)
+                            ? r.metricValue.toLocaleString()
+                            : r.metricValue.toLocaleString(undefined, {
+                                maximumFractionDigits: 2,
+                              })}
+                        </td>
+                        <td className="py-2 pr-3 text-foreground-muted">
+                          {r.pagePath ?? "—"}
+                        </td>
+                        <td className="py-2">
+                          <Badge variant="outline">{r.source}</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Details</CardTitle>
@@ -141,8 +254,8 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
 
         {batches.length === 0 ? (
           <EmptyState
-            title="No analytics imported yet"
-            description="Upload a CSV or JSON export to start building this project's history."
+            title="No file imports yet"
+            description="CSV/JSON uploads appear here. API-ingested rows show under Project analytics above."
             action={
               <Link
                 href={`/dashboard/websites/${project.id}/import`}
@@ -157,61 +270,36 @@ export default async function WebsiteDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle className="text-base">Import history</CardTitle>
               <CardDescription>
-                Recent batches · showing up to {recordCountHint} sample records in the database
+                Recent file import batches for this project
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <ul className="space-y-2">
-                {batches.slice(0, 10).map((b) => (
-                  <li
-                    key={b.id}
-                    className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2 last:border-0"
-                  >
-                    <span className="text-foreground">
-                      {b.originalFileName || b.source} · {b.status}
-                    </span>
-                    <span className="text-xs text-foreground-subtle">
-                      {b.acceptedRows} accepted · {b.rejectedRows} rejected ·{" "}
-                      {b.duplicateRows} dupes
-                    </span>
+            <CardContent>
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {batches.slice(0, 8).map((b) => (
+                  <li key={b.id} className="px-3 py-2 text-sm">
+                    <p className="font-medium text-foreground">
+                      {b.originalFileName || b.source}
+                    </p>
+                    <p className="text-xs text-foreground-subtle">
+                      {b.status} · {b.acceptedRows} accepted ·{" "}
+                      {b.rejectedRows} rejected
+                      {b.startedAt ? ` · ${b.startedAt.slice(0, 10)}` : ""}
+                    </p>
                   </li>
                 ))}
               </ul>
-              {records.length > 0 && (
-                <div className="overflow-x-auto pt-2">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="text-foreground-subtle">
-                        <th className="py-1 pr-2">Date</th>
-                        <th className="py-1 pr-2">Metric</th>
-                        <th className="py-1 pr-2">Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {records.map((r) => (
-                        <tr key={r.id} className="text-foreground">
-                          <td className="py-1 pr-2">{r.observationDate}</td>
-                          <td className="py-1 pr-2">{r.metricName}</td>
-                          <td className="py-1 pr-2">{r.metricValue}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <Link
+                href={`/dashboard/websites/${project.id}/manage`}
+                className="mt-3 inline-block text-sm text-primary hover:underline"
+              >
+                Manage data →
+              </Link>
             </CardContent>
           </Card>
         )}
 
-        <div className="border-t border-border pt-6">
-          <h3 className="text-sm font-semibold text-foreground">Danger zone</h3>
-          <p className="mt-1 mb-3 text-sm text-foreground-muted">
-            Deleting a project removes it from your account permanently.
-          </p>
-          <DeleteProjectButton
-            projectId={project.id}
-            projectName={project.name}
-          />
+        <div className="pt-4">
+          <DeleteProjectButton projectId={project.id} projectName={project.name} />
         </div>
       </div>
     </AppShell>
