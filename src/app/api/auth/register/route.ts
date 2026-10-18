@@ -14,7 +14,7 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   const ip = clientIp(request);
-  const limited = rateLimit(`register:${ip}`, 10, 60 * 60 * 1000); // 10 / hour
+  const limited = rateLimit(`register:${ip}`, 10, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: "Too many registration attempts. Try again later." },
@@ -46,14 +46,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  const result = await createUser(parsed.data);
-  if ("error" in result) {
-    const status = result.error.includes("already exists") ? 409 : 400;
-    return NextResponse.json({ error: result.error }, { status });
-  }
+  try {
+    const result = await createUser(parsed.data);
+    if ("error" in result) {
+      const status = result.error.includes("already exists") ? 409 : 400;
+      return NextResponse.json({ error: result.error }, { status });
+    }
 
-  return NextResponse.json(
-    { user: toPublicUser(result.user) },
-    { status: 201 }
-  );
+    return NextResponse.json(
+      { user: toPublicUser(result.user) },
+      { status: 201 }
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[register]", message);
+
+    if (/DATABASE_URL is required/i.test(message)) {
+      return NextResponse.json(
+        {
+          error:
+            "Database is not configured. Set DATABASE_URL to a Turso/libsql URL (not Postgres) in Vercel env vars.",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (/no such table|SQLITE_ERROR|does not exist/i.test(message)) {
+      return NextResponse.json(
+        {
+          error:
+            "Database schema is missing. Ensure migrations can run (remote DATABASE_URL) or run npm run db:migrate against your Turso database.",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (/libsql|TURSO|HTTP status|fetch failed|ECONNREFUSED/i.test(message)) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not connect to the database. Check DATABASE_URL and DATABASE_AUTH_TOKEN (Turso/libsql). Vercel Postgres is not supported by this app.",
+        },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Registration failed due to a server error. Check Vercel logs." },
+      { status: 500 }
+    );
+  }
 }

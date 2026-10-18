@@ -1,15 +1,21 @@
 import fs from "fs";
 import path from "path";
-import { getDb, resetDbClient } from "@/lib/db/client";
+import { getDatabaseUrl, getDb, resetDbClient } from "@/lib/db/client";
 
 /**
  * Apply SQL migration files from db/migrations in order.
  * Tracks applied migrations in schema_migrations.
  */
 export async function runMigrations(): Promise<{ applied: string[] }> {
-  const dataDir = path.join(process.cwd(), "data");
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  const url = getDatabaseUrl();
+
+  // Local file DB only: ensure data directory exists.
+  // On Vercel the filesystem is read-only — never mkdir for remote URLs.
+  if (url.startsWith("file:")) {
+    const dataDir = path.join(process.cwd(), "data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
   }
 
   resetDbClient();
@@ -23,6 +29,12 @@ export async function runMigrations(): Promise<{ applied: string[] }> {
   `);
 
   const migrationsDir = path.join(process.cwd(), "db", "migrations");
+  if (!fs.existsSync(migrationsDir)) {
+    throw new Error(
+      `Migrations directory not found at ${migrationsDir}. Ensure db/migrations is deployed.`
+    );
+  }
+
   const files = fs
     .readdirSync(migrationsDir)
     .filter((f) => f.endsWith(".sql"))

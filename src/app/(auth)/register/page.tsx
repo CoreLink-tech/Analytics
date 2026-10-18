@@ -44,8 +44,7 @@ export default function RegisterPage() {
           </p>
 
           <p className="mt-4 text-center text-xs text-foreground-subtle">
-            Stage 4 uses an in-memory user store for development. Accounts may
-            not persist across server restarts until the database stage.
+            Accounts are stored in your configured database.
           </p>
         </div>
       </div>
