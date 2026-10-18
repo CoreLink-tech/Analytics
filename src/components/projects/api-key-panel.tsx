@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 type KeyMeta = {
   id: string;
@@ -13,6 +14,41 @@ type KeyMeta = {
   lastUsedAt: string | null;
   revokedAt: string | null;
 };
+
+function statusFor(k: KeyMeta): {
+  label: string;
+  variant: "success" | "warning" | "error" | "outline";
+  detail: string;
+} {
+  if (k.revokedAt) {
+    return {
+      label: "Revoked",
+      variant: "error",
+      detail: `Revoked ${k.revokedAt.slice(0, 10)}`,
+    };
+  }
+  if (k.lastUsedAt) {
+    const used = new Date(k.lastUsedAt).getTime();
+    const days = (Date.now() - used) / (1000 * 60 * 60 * 24);
+    if (days <= 7) {
+      return {
+        label: "Connected",
+        variant: "success",
+        detail: `Last request ${k.lastUsedAt.slice(0, 16).replace("T", " ")} UTC`,
+      };
+    }
+    return {
+      label: "Connected (idle)",
+      variant: "warning",
+      detail: `Last used ${k.lastUsedAt.slice(0, 10)} — no recent traffic`,
+    };
+  }
+  return {
+    label: "Not connected",
+    variant: "outline",
+    detail: "No successful ingest yet. Add the key on your site and send data.",
+  };
+}
 
 export function ApiKeyPanel({
   projectId,
@@ -30,6 +66,25 @@ export function ApiKeyPanel({
   const [loading, setLoading] = useState(false);
 
   const ingestUrl = `${appOrigin.replace(/\/$/, "")}/api/v1/ingest`;
+
+  async function refreshKeys() {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/keys`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not refresh keys.");
+        return;
+      }
+      setKeys((data.keys as KeyMeta[]) ?? []);
+      router.refresh();
+    } catch {
+      setError("Could not refresh keys.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function generate() {
     setError(null);
@@ -57,7 +112,11 @@ export function ApiKeyPanel({
   }
 
   async function revoke(keyId: string) {
-    if (!window.confirm("Revoke this API key? Sites using it will stop working.")) {
+    if (
+      !window.confirm(
+        "Revoke this API key? Sites using it will stop working."
+      )
+    ) {
       return;
     }
     setError(null);
@@ -95,8 +154,9 @@ export function ApiKeyPanel({
             {secret}
           </code>
           <p className="mt-2 text-xs">
-            On your website host, set e.g.{" "}
-            <code className="text-xs">ANALYTICS_ARCHIVE_API_KEY={secret.slice(0, 16)}…</code>
+            On your website host set an env var to this value, and POST metrics
+            to the ingest URL below. Status becomes <strong>Connected</strong>{" "}
+            after the first successful request.
           </p>
         </Alert>
       )}
@@ -111,49 +171,79 @@ export function ApiKeyPanel({
 {`curl -X POST ${ingestUrl} \\
   -H "Authorization: Bearer YOUR_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"records":[{"date":"2026-10-01","metric_name":"pageviews","metric_value":42,"path":"/"}]}'`}
+  -d '{"records":[{"date":"2026-10-18","metric_name":"pageviews","metric_value":1,"path":"/"}]}'`}
         </pre>
       </div>
 
-      <Button type="button" onClick={generate} loading={loading} size="sm">
-        Generate API key
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" onClick={generate} loading={loading} size="sm">
+          Generate API key
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={loading}
+          onClick={refreshKeys}
+        >
+          Refresh status
+        </Button>
+      </div>
 
-      {keys.length > 0 && (
-        <ul className="divide-y divide-border rounded-lg border border-border text-sm">
-          {keys.map((k) => (
-            <li
-              key={k.id}
-              className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div>
-                <p className="font-medium text-foreground">
-                  {k.name}{" "}
-                  <span className="font-mono text-xs text-foreground-subtle">
-                    {k.keyPrefix}…
-                  </span>
-                </p>
-                <p className="text-xs text-foreground-subtle">
-                  Created {k.createdAt.slice(0, 10)}
-                  {k.lastUsedAt ? ` · Last used ${k.lastUsedAt.slice(0, 10)}` : ""}
-                  {k.revokedAt ? " · Revoked" : ""}
-                </p>
-              </div>
-              {!k.revokedAt && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={loading}
-                  onClick={() => revoke(k.id)}
+      <div>
+        <h4 className="mb-2 text-sm font-semibold text-foreground">
+          Your API keys
+        </h4>
+        {keys.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-border p-4 text-sm text-foreground-muted">
+            No keys yet. Generate one to connect a website.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+            {keys.map((k) => {
+              const status = statusFor(k);
+              return (
+                <li
+                  key={k.id}
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  Revoke
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-foreground">
+                        {k.name}
+                      </span>
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    </div>
+                    <p className="font-mono text-xs text-foreground-subtle">
+                      {k.keyPrefix}…
+                    </p>
+                    <p className="text-xs text-foreground-muted">
+                      Created {k.createdAt.slice(0, 10)} · {status.detail}
+                    </p>
+                  </div>
+                  {!k.revokedAt && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={loading}
+                      onClick={() => revoke(k.id)}
+                      className="shrink-0"
+                    >
+                      Revoke
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="mt-2 text-xs text-foreground-subtle">
+          <strong>Connected</strong> means this archive received at least one
+          successful request with that key. Env vars alone do not mark a key
+          connected until data is sent.
+        </p>
+      </div>
     </div>
   );
 }
